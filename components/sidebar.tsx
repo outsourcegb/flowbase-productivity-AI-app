@@ -103,17 +103,7 @@ export function Sidebar() {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  // Prevent CLS (Cumulative Layout Shift) by rendering a visual skeleton matching the exact dimension layout
-  if (!isMounted) {
-    return (
-      <div 
-        className={cn(
-          "min-h-screen bg-zinc-50/70 dark:bg-zinc-950/40 border-r border-zinc-200/80 dark:border-zinc-900 box-border animate-pulse",
-          isCollapsed ? "w-[72px]" : "w-[260px]"
-        )}
-      />
-    );
-  }
+
 
   return (
     <aside
