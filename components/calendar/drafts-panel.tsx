@@ -65,7 +65,7 @@ export function DraftsPanel({
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
         {drafts.length === 0 ? (
-          <div className="flex-1 border border-dashed border-zinc-200 dark:border-zinc-800/80 rounded-xl flex flex-col items-center justify-center p-6 text-center text-zinc-400 min-h-[150px]">
+          <div className="flex-1 border border-dashed border-zinc-200 dark:border-zinc-800/80 rounded-xl flex flex-col items-center justify-center p-6 text-center text-zinc-400 min-h-[100px]">
             <span className="text-xs">No draft tasks</span>
             <span className="text-[10px] text-zinc-500 mt-1">Create one to start planning</span>
           </div>

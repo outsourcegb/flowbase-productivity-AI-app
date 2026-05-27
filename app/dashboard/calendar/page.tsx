@@ -181,13 +181,17 @@ export default function CalendarPage() {
 
   const handleDropOnCell = (e: React.DragEvent, targetDateStr: string) => {
     e.preventDefault();
-    const id = e.dataTransfer.getData("text/plain") || draggedTaskId;
+    e.stopPropagation();
     
-    // Strict date format validation (YYYY-MM-DD)
-    const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr);
-    const taskExists = tasks.some((t) => t.id === id);
+    const id = e.dataTransfer.getData("text/plain");
     
-    if (id && isValidDate && taskExists) {
+    // Strict format + calendar date validity check
+    const formatMatch = /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr);
+    const parsedDate = new Date(targetDateStr);
+    const isValidCalendarDate = formatMatch && !isNaN(parsedDate.getTime());
+    const taskExists = id ? tasks.some((t) => t.id === id) : false;
+    
+    if (id && isValidCalendarDate && taskExists) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === id
@@ -206,8 +210,10 @@ export default function CalendarPage() {
 
   const handleDropOnDrafts = (e: React.DragEvent) => {
     e.preventDefault();
-    const id = e.dataTransfer.getData("text/plain") || draggedTaskId;
-    const taskExists = tasks.some((t) => t.id === id);
+    e.stopPropagation();
+    
+    const id = e.dataTransfer.getData("text/plain");
+    const taskExists = id ? tasks.some((t) => t.id === id) : false;
     
     if (id && taskExists) {
       setTasks((prev) =>
