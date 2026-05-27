@@ -154,6 +154,25 @@ export default function CalendarPage() {
   const [formTime, setFormTime] = useState("");
   const [formCategory, setFormCategory] = useState<keyof typeof CATEGORIES>("meeting");
 
+  // Load tasks from Neon Database on mount
+  React.useEffect(() => {
+    const loadDbTasks = async () => {
+      try {
+        const res = await fetch("/api/tasks");
+        if (res.ok) {
+          const data = await res.json();
+          // Load database tasks if any exist; otherwise, fall back to initial mockup data
+          if (data && data.length > 0) {
+            setTasks(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load tasks from DB:", err);
+      }
+    };
+    loadDbTasks();
+  }, []);
+
   const navigateMonth = (direction: "prev" | "next") => {
     const amount = direction === "prev" ? -1 : 1;
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + amount, 1));
@@ -179,7 +198,7 @@ export default function CalendarPage() {
     setActiveDragTargetDate(null);
   };
 
-  const handleDropOnCell = (e: React.DragEvent, targetDateStr: string) => {
+  const handleDropOnCell = async (e: React.DragEvent, targetDateStr: string) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -189,38 +208,51 @@ export default function CalendarPage() {
     const formatMatch = /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr);
     const parsedDate = new Date(targetDateStr);
     const isValidCalendarDate = formatMatch && !isNaN(parsedDate.getTime());
-    const taskExists = id ? tasks.some((t) => t.id === id) : false;
+    const targetTask = tasks.find((t) => t.id === id);
     
-    if (id && isValidCalendarDate && taskExists) {
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === id
-            ? { 
-                ...task, 
-                date: targetDateStr,
-              }
-            : task
-        )
-      );
+    if (id && isValidCalendarDate && targetTask) {
+      const updated = { ...targetTask, date: targetDateStr };
+
+      // Optimistic update
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+
+      try {
+        await fetch("/api/tasks", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated),
+        });
+      } catch (err) {
+        console.error("Failed to sync drag update to DB:", err);
+      }
     }
     
     setDraggedTaskId(null);
     setActiveDragTargetDate(null);
   };
 
-  const handleDropOnDrafts = (e: React.DragEvent) => {
+  const handleDropOnDrafts = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     const id = e.dataTransfer.getData("text/plain");
-    const taskExists = id ? tasks.some((t) => t.id === id) : false;
+    const targetTask = tasks.find((t) => t.id === id);
     
-    if (id && taskExists) {
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === id ? { ...task, date: null, time: undefined } : task
-        )
-      );
+    if (id && targetTask) {
+      const updated = { ...targetTask, date: null, time: undefined };
+
+      // Optimistic update
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+
+      try {
+        await fetch("/api/tasks", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, date: null, time: null }),
+        });
+      } catch (err) {
+        console.error("Failed to sync draft drop to DB:", err);
+      }
     }
     setDraggedTaskId(null);
   };
@@ -246,13 +278,16 @@ export default function CalendarPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSaveTask = (e: React.FormEvent) => {
+  const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanTitle = formTitle.trim();
     if (!cleanTitle) return;
 
+    const isEditing = !!editingTask;
+    const tempId = isEditing ? editingTask.id : `task_${Date.now()}`;
+
     const taskData: Task = {
-      id: editingTask ? editingTask.id : `task_${Date.now()}`,
+      id: tempId,
       title: cleanTitle,
       description: formDesc.trim() ? formDesc.trim() : undefined,
       date: formDate ? formDate : null,
@@ -260,17 +295,43 @@ export default function CalendarPage() {
       category: formCategory,
     };
 
-    if (editingTask) {
+    // Optimistic update
+    if (isEditing) {
       setTasks((prev) => prev.map((t) => (t.id === editingTask.id ? taskData : t)));
     } else {
       setTasks((prev) => [...prev, taskData]);
     }
     setIsDialogOpen(false);
+
+    try {
+      const res = await fetch("/api/tasks", {
+        method: isEditing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskData),
+      });
+
+      if (res.ok) {
+        const synced = await res.json();
+        // Update client task with server data schema
+        setTasks((prev) => prev.map((t) => (t.id === tempId ? synced : t)));
+      }
+    } catch (err) {
+      console.error("Failed to save task to DB:", err);
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
+    // Optimistic update
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
     setIsDialogOpen(false);
+
+    try {
+      await fetch(`/api/tasks?id=${taskId}`, {
+        method: "DELETE",
+      });
+    } catch (err) {
+      console.error("Failed to delete task from DB:", err);
+    }
   };
 
   return (
