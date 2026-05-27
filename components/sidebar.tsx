@@ -51,7 +51,6 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
-// Structured groups to distribute features logically and keep UI organized
 const menuGroups: MenuGroup[] = [
   {
     label: "Workspace",
@@ -104,7 +103,17 @@ export function Sidebar() {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  if (!isMounted) return null;
+  // Prevent CLS (Cumulative Layout Shift) by rendering a visual skeleton matching the exact dimension layout
+  if (!isMounted) {
+    return (
+      <div 
+        className={cn(
+          "min-h-screen bg-zinc-50/70 dark:bg-zinc-950/40 border-r border-zinc-200/80 dark:border-zinc-900 box-border animate-pulse",
+          isCollapsed ? "w-[72px]" : "w-[260px]"
+        )}
+      />
+    );
+  }
 
   return (
     <aside
@@ -180,18 +189,22 @@ export function Sidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-200 box-border border border-transparent w-full relative overflow-hidden group/item",
+                    "flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-200 box-border border-y border-r border-l-3 border-transparent w-full relative overflow-hidden group/item",
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive 
-                      ? "text-zinc-950 dark:text-white font-semibold" 
+                      ? "text-zinc-950 dark:text-white font-semibold rounded-l-none rounded-r-lg border-l-current" 
                       : "font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-200/20 dark:hover:bg-zinc-900/20"
                   )}
-                  style={isActive ? {
-                    backgroundColor: `${item.color}09`,
-                    borderLeft: `3px solid ${item.color}`,
-                    borderRadius: "0 8px 8px 0",
-                    paddingLeft: "9px", // Offset padding for the border bar
-                  } : undefined}
+                  style={
+                    isActive
+                      ? ({
+                          "--tw-border-opacity": "1",
+                          borderColor: `transparent transparent transparent ${item.color}`,
+                          backgroundColor: `${item.color}09`,
+                          paddingLeft: "9px",
+                        } as React.CSSProperties)
+                      : undefined
+                  }
                 >
                   <Icon
                     size={16}
@@ -305,6 +318,7 @@ export function Sidebar() {
     </aside>
   );
 }
+
 
 
 

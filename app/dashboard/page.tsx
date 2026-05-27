@@ -65,7 +65,7 @@ export default async function DashboardPage() {
       <header className="flex justify-between items-center pb-6 border-b border-zinc-200/80 dark:border-zinc-900 mb-8">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
-            <Sparkles size={12} className="animate-spin" style={{ animationDuration: '3s' }} />
+            <Sparkles size={12} className="animate-spin text-purple-500" style={{ animationDuration: '10s' }} />
             <span>Workspace Live</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mt-1">
