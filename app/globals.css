@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
+  --font-sans: var(--font-sans);
+  --font-sans-fallback: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -55,71 +59,71 @@
 }
 
 :root {
-  --background: hsl(0 0% 100%);
+  --background: hsl(40 20% 98%); /* Warm Alabaster */
   --foreground: hsl(240 10% 3.9%);
-  --card: hsl(0 0% 100%);
+  --card: hsl(40 20% 98%);
   --card-foreground: hsl(240 10% 3.9%);
-  --popover: hsl(0 0% 100%);
+  --popover: hsl(40 20% 98%);
   --popover-foreground: hsl(240 10% 3.9%);
   --primary: hsl(240 5.9% 10%);
   --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 4.8% 95.9%);
+  --secondary: hsl(40 10% 94%); /* Light Warm Sage/Linen */
   --secondary-foreground: hsl(240 5.9% 10%);
-  --muted: hsl(240 4.8% 95.9%);
+  --muted: hsl(40 10% 94%);
   --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: hsl(240 4.8% 95.9%);
-  --accent-foreground: hsl(240 5.9% 10%);
+  --accent: hsl(142 70% 95%); /* Soft Fresh Sage Highlight */
+  --accent-foreground: hsl(142 80% 30%);
   --destructive: hsl(0 84.2% 60.2%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(240 10% 3.9%);
-  --radius: 0.5rem;
+  --border: hsl(40 12% 90%); /* Warm Linen Border */
+  --input: hsl(40 12% 90%);
+  --ring: hsl(142 80% 30%);
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: hsl(240 10% 3.9%);
+  --background: hsl(270 20% 3%); /* Premium Midnight Obsidian */
   --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 3.9%);
+  --card: hsl(270 15% 5%);
   --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 10% 3.9%);
+  --popover: hsl(270 20% 3%);
   --popover-foreground: hsl(0 0% 98%);
   --primary: hsl(0 0% 98%);
   --primary-foreground: hsl(240 5.9% 10%);
-  --secondary: hsl(240 3.7% 15.9%);
+  --secondary: hsl(270 10% 8%);
   --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 3.7% 15.9%);
-  --muted-foreground: hsl(240 5% 64.9%);
-  --accent: hsl(240 3.7% 15.9%);
-  --accent-foreground: hsl(0 0% 98%);
+  --muted: hsl(270 10% 8%);
+  --muted-foreground: hsl(270 5% 64.9%);
+  --accent: hsl(270 50% 12%); /* Indigo Velvet Accent */
+  --accent-foreground: hsl(270 90% 80%);
   --destructive: hsl(0 62.8% 30.6%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 3.7% 15.9%);
-  --input: hsl(240 3.7% 15.9%);
-  --ring: hsl(240 4.9% 83.9%);
+  --border: hsl(270 10% 11%); /* Velvet Graphite Border */
+  --input: hsl(270 10% 11%);
+  --ring: hsl(270 90% 80%);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: hsl(240 10% 3.9%);
+    --background: hsl(270 20% 3%);
     --foreground: hsl(0 0% 98%);
-    --card: hsl(240 10% 3.9%);
+    --card: hsl(270 15% 5%);
     --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(240 10% 3.9%);
+    --popover: hsl(270 20% 3%);
     --popover-foreground: hsl(0 0% 98%);
     --primary: hsl(0 0% 98%);
     --primary-foreground: hsl(240 5.9% 10%);
-    --secondary: hsl(240 3.7% 15.9%);
+    --secondary: hsl(270 10% 8%);
     --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(240 3.7% 15.9%);
-    --muted-foreground: hsl(240 5% 64.9%);
-    --accent: hsl(240 3.7% 15.9%);
-    --accent-foreground: hsl(0 0% 98%);
+    --muted: hsl(270 10% 8%);
+    --muted-foreground: hsl(270 5% 64.9%);
+    --accent: hsl(270 50% 12%);
+    --accent-foreground: hsl(270 90% 80%);
     --destructive: hsl(0 62.8% 30.6%);
     --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(240 3.7% 15.9%);
-    --input: hsl(240 3.7% 15.9%);
-    --ring: hsl(240 4.9% 83.9%);
+    --border: hsl(270 10% 11%);
+    --input: hsl(270 10% 11%);
+    --ring: hsl(270 90% 80%);
   }
 }
 
@@ -129,5 +133,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans), var(--font-sans-fallback);
   }
 }
+
