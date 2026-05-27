@@ -1,6 +1,14 @@
 import { ClerkProvider } from '@clerk/nextjs';
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "next-themes";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import type { Metadata } from "next";
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Next.js Premium Startup Boilerplate",
@@ -14,11 +22,25 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" className={jakarta.variable} suppressHydrationWarning>
         <body style={{ margin: 0, padding: 0 }}>
-          {children}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
   );
 }
+
+
+
+
+
