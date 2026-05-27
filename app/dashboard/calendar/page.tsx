@@ -185,8 +185,9 @@ export default function CalendarPage() {
     
     // Strict date format validation (YYYY-MM-DD)
     const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr);
+    const taskExists = tasks.some((t) => t.id === id);
     
-    if (id && isValidDate) {
+    if (id && isValidDate && taskExists) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === id
@@ -206,7 +207,9 @@ export default function CalendarPage() {
   const handleDropOnDrafts = (e: React.DragEvent) => {
     e.preventDefault();
     const id = e.dataTransfer.getData("text/plain") || draggedTaskId;
-    if (id) {
+    const taskExists = tasks.some((t) => t.id === id);
+    
+    if (id && taskExists) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === id ? { ...task, date: null, time: undefined } : task
@@ -239,14 +242,15 @@ export default function CalendarPage() {
 
   const handleSaveTask = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTitle.trim()) return;
+    const cleanTitle = formTitle.trim();
+    if (!cleanTitle) return;
 
     const taskData: Task = {
       id: editingTask ? editingTask.id : `task_${Date.now()}`,
-      title: formTitle,
-      description: formDesc || undefined,
+      title: cleanTitle,
+      description: formDesc.trim() ? formDesc.trim() : undefined,
       date: formDate ? formDate : null,
-      time: formTime || undefined,
+      time: formTime.trim() ? formTime.trim() : undefined,
       category: formCategory,
     };
 

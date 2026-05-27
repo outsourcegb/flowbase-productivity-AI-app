@@ -80,7 +80,7 @@ export function WeekView({
           </span>
         </div>
 
-        <div className="flex-1 p-2 flex flex-col gap-1.5 overflow-y-auto min-h-[250px] md:min-h-[450px]">
+        <div className="flex-1 p-2 flex flex-col gap-1.5 overflow-y-auto min-h-[150px] md:min-h-[300px]">
           {dayTasks.map((task) => {
             const styles = categoryStyles[task.category];
             return (

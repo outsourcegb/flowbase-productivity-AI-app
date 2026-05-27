@@ -107,7 +107,7 @@ export function MonthView({
           </span>
         </div>
 
-        <div className="flex-1 flex flex-col gap-1 overflow-y-auto max-h-[150px] scrollbar-thin">
+        <div className="flex-1 flex flex-col gap-1 overflow-y-auto max-h-[80px] sm:max-h-[100px] md:max-h-[140px] scrollbar-thin">
           {cellTasks.map((task) => {
             const styles = categoryStyles[task.category];
             return (
