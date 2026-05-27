@@ -1,21 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { MonthView } from "@/components/calendar/month-view";
 import { WeekView } from "@/components/calendar/week-view";
 import { DraftsPanel } from "@/components/calendar/drafts-panel";
 import { TaskDialog } from "@/components/calendar/task-dialog";
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  date: string | null; // YYYY-MM-DD or null for drafts
-  time?: string;       // e.g. "09:30 AM" or "All Day"
-  duration?: number;   // in minutes
-  category: "meeting" | "design" | "client" | "planning" | "marketing" | "personal";
-}
+import { useTaskManagement } from "./use-task-management";
 
 const CATEGORIES = {
   meeting: { label: "Meetings", color: "#6366f1", bg: "rgba(99, 102, 241, 0.15)", text: "#6366f1" },
@@ -71,268 +62,39 @@ const CATEGORY_STYLES = {
   },
 };
 
-const INITIAL_TASKS: Task[] = [
-  {
-    id: "t1",
-    title: "Design review specs",
-    description: "Go over final layout drafts",
-    date: "2026-05-02",
-    time: "10:00 AM",
-    duration: 60,
-    category: "design",
-  },
-  {
-    id: "t2",
-    title: "Team Standup meeting",
-    description: "Daily status checks",
-    date: "2026-05-03",
-    time: "09:30 AM",
-    duration: 30,
-    category: "meeting",
-  },
-  {
-    id: "t3",
-    title: "Client discovery call",
-    description: "Kickoff call for design sprint",
-    date: "2026-05-03",
-    time: "02:00 PM",
-    duration: 45,
-    category: "client",
-  },
-  {
-    id: "t4",
-    title: "Sprint review session",
-    description: "Analyze timeline gaps",
-    date: "2026-05-05",
-    time: "11:00 AM",
-    duration: 90,
-    category: "planning",
-  },
-  {
-    id: "t5",
-    title: "Content shooting day",
-    description: "Shoot videos for marketing",
-    date: "2026-05-15",
-    time: "All Day",
-    category: "marketing",
-  },
-  {
-    id: "d1",
-    title: "Review analytics funnel",
-    description: "Unscheduled conversion check",
-    date: null,
-    category: "planning",
-  },
-  {
-    id: "d2",
-    title: "Prepare invoice summaries",
-    description: "Draft monthly billing reports",
-    date: null,
-    category: "personal",
-  },
-];
-
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"month" | "week">("month");
-  
-  // Drag and Drop active states
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
-  const [activeDragTargetDate, setActiveDragTargetDate] = useState<string | null>(null);
-
-  // Core Tasks state initialization
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-
-  // Dialog State
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  
-  // Dialog form variables
-  const [formTitle, setFormTitle] = useState("");
-  const [formDesc, setFormDesc] = useState("");
-  const [formDate, setFormDate] = useState("");
-  const [formTime, setFormTime] = useState("");
-  const [formCategory, setFormCategory] = useState<keyof typeof CATEGORIES>("meeting");
-
-  // Load tasks from Neon Database on mount
-  React.useEffect(() => {
-    const loadDbTasks = async () => {
-      try {
-        const res = await fetch("/api/tasks");
-        if (res.ok) {
-          const data = await res.json();
-          // Load database tasks if any exist; otherwise, fall back to initial mockup data
-          if (data && data.length > 0) {
-            setTasks(data);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load tasks from DB:", err);
-      }
-    };
-    loadDbTasks();
-  }, []);
-
-  const navigateMonth = (direction: "prev" | "next") => {
-    const amount = direction === "prev" ? -1 : 1;
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + amount, 1));
-  };
-
-  const jumpToToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  // HTML5 Drag and Drop Handlers
-  const handleDragStart = (e: React.DragEvent, taskId: string) => {
-    setDraggedTaskId(taskId);
-    e.dataTransfer.setData("text/plain", taskId);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOverCell = (e: React.DragEvent, targetDateStr: string) => {
-    e.preventDefault();
-    setActiveDragTargetDate(targetDateStr);
-  };
-
-  const handleDragLeaveCell = () => {
-    setActiveDragTargetDate(null);
-  };
-
-  const handleDropOnCell = async (e: React.DragEvent, targetDateStr: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const id = e.dataTransfer.getData("text/plain");
-    
-    // Strict format + calendar date validity check
-    const formatMatch = /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr);
-    const parsedDate = new Date(targetDateStr);
-    const isValidCalendarDate = formatMatch && !isNaN(parsedDate.getTime());
-    const targetTask = tasks.find((t) => t.id === id);
-    
-    if (id && isValidCalendarDate && targetTask) {
-      const updated = { ...targetTask, date: targetDateStr };
-
-      // Optimistic update
-      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
-
-      try {
-        await fetch("/api/tasks", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updated),
-        });
-      } catch (err) {
-        console.error("Failed to sync drag update to DB:", err);
-      }
-    }
-    
-    setDraggedTaskId(null);
-    setActiveDragTargetDate(null);
-  };
-
-  const handleDropOnDrafts = async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const id = e.dataTransfer.getData("text/plain");
-    const targetTask = tasks.find((t) => t.id === id);
-    
-    if (id && targetTask) {
-      const updated = { ...targetTask, date: null, time: undefined };
-
-      // Optimistic update
-      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
-
-      try {
-        await fetch("/api/tasks", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, date: null, time: null }),
-        });
-      } catch (err) {
-        console.error("Failed to sync draft drop to DB:", err);
-      }
-    }
-    setDraggedTaskId(null);
-  };
-
-  // Dialog management
-  const openNewTaskDialog = (initialDateStr: string | null = null) => {
-    setEditingTask(null);
-    setFormTitle("");
-    setFormDesc("");
-    setFormDate(initialDateStr || "");
-    setFormTime("");
-    setFormCategory("meeting");
-    setIsDialogOpen(true);
-  };
-
-  const openEditTaskDialog = (task: Task) => {
-    setEditingTask(task);
-    setFormTitle(task.title);
-    setFormDesc(task.description || "");
-    setFormDate(task.date || "");
-    setFormTime(task.time || "");
-    setFormCategory(task.category);
-    setIsDialogOpen(true);
-  };
-
-  const handleSaveTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanTitle = formTitle.trim();
-    if (!cleanTitle) return;
-
-    const isEditing = !!editingTask;
-    const tempId = isEditing ? editingTask.id : `task_${Date.now()}`;
-
-    const taskData: Task = {
-      id: tempId,
-      title: cleanTitle,
-      description: formDesc.trim() ? formDesc.trim() : undefined,
-      date: formDate ? formDate : null,
-      time: formTime.trim() ? formTime.trim() : undefined,
-      category: formCategory,
-    };
-
-    // Optimistic update
-    if (isEditing) {
-      setTasks((prev) => prev.map((t) => (t.id === editingTask.id ? taskData : t)));
-    } else {
-      setTasks((prev) => [...prev, taskData]);
-    }
-    setIsDialogOpen(false);
-
-    try {
-      const res = await fetch("/api/tasks", {
-        method: isEditing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskData),
-      });
-
-      if (res.ok) {
-        const synced = await res.json();
-        // Update client task with server data schema
-        setTasks((prev) => prev.map((t) => (t.id === tempId ? synced : t)));
-      }
-    } catch (err) {
-      console.error("Failed to save task to DB:", err);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    // Optimistic update
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    setIsDialogOpen(false);
-
-    try {
-      await fetch(`/api/tasks?id=${taskId}`, {
-        method: "DELETE",
-      });
-    } catch (err) {
-      console.error("Failed to delete task from DB:", err);
-    }
-  };
+  const {
+    currentDate,
+    viewMode,
+    setViewMode,
+    tasks,
+    draggedTaskId,
+    activeDragTargetDate,
+    isDialogOpen,
+    setIsDialogOpen,
+    editingTask,
+    formTitle,
+    setFormTitle,
+    formDesc,
+    setFormDesc,
+    formDate,
+    setFormDate,
+    formTime,
+    setFormTime,
+    formCategory,
+    setFormCategory,
+    navigateMonth,
+    jumpToToday,
+    handleDragStart,
+    handleDragOverCell,
+    handleDragLeaveCell,
+    handleDropOnCell,
+    handleDropOnDrafts,
+    openNewTaskDialog,
+    openEditTaskDialog,
+    handleSaveTask,
+    handleDeleteTask,
+  } = useTaskManagement();
 
   return (
     <main className="relative flex-1 box-border bg-zinc-50/50 dark:bg-zinc-950/20 flex flex-col md:flex-row h-auto md:h-screen overflow-y-auto md:overflow-hidden">

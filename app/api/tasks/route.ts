@@ -41,6 +41,11 @@ export async function POST(req: Request) {
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
+    const VALID_CATEGORIES = ["meeting", "design", "client", "planning", "marketing", "personal"];
+    if (!VALID_CATEGORIES.includes(category)) {
+      return new NextResponse("Invalid category", { status: 400 });
+    }
+
     const [createdTask] = await db
       .insert(tasks)
       .values({
@@ -75,6 +80,11 @@ export async function PUT(req: Request) {
 
     if (!id) {
       return new NextResponse("Missing task ID", { status: 400 });
+    }
+
+    const VALID_CATEGORIES = ["meeting", "design", "client", "planning", "marketing", "personal"];
+    if (category && !VALID_CATEGORIES.includes(category)) {
+      return new NextResponse("Invalid category", { status: 400 });
     }
 
     // Verify task ownership and update
