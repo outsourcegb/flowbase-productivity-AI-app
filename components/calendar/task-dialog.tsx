@@ -116,7 +116,7 @@ export function TaskDialog({
             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Category</label>
             <select
               value={formCategory}
-              onChange={(e) => setFormCategory(e.target.value as any)}
+              onChange={(e) => setFormCategory(e.target.value as Task["category"])}
               className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-transparent text-zinc-900 dark:text-zinc-100 focus:outline-none"
             >
               {Object.entries(categories).map(([key, value]) => (

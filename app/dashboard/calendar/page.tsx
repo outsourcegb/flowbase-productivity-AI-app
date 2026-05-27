@@ -71,6 +71,67 @@ const CATEGORY_STYLES = {
   },
 };
 
+const INITIAL_TASKS: Task[] = [
+  {
+    id: "t1",
+    title: "Design review specs",
+    description: "Go over final layout drafts",
+    date: "2026-05-02",
+    time: "10:00 AM",
+    duration: 60,
+    category: "design",
+  },
+  {
+    id: "t2",
+    title: "Team Standup meeting",
+    description: "Daily status checks",
+    date: "2026-05-03",
+    time: "09:30 AM",
+    duration: 30,
+    category: "meeting",
+  },
+  {
+    id: "t3",
+    title: "Client discovery call",
+    description: "Kickoff call for design sprint",
+    date: "2026-05-03",
+    time: "02:00 PM",
+    duration: 45,
+    category: "client",
+  },
+  {
+    id: "t4",
+    title: "Sprint review session",
+    description: "Analyze timeline gaps",
+    date: "2026-05-05",
+    time: "11:00 AM",
+    duration: 90,
+    category: "planning",
+  },
+  {
+    id: "t5",
+    title: "Content shooting day",
+    description: "Shoot videos for marketing",
+    date: "2026-05-15",
+    time: "All Day",
+    category: "marketing",
+  },
+  {
+    id: "d1",
+    title: "Review analytics funnel",
+    description: "Unscheduled conversion check",
+    date: null,
+    category: "planning",
+  },
+  {
+    id: "d2",
+    title: "Prepare invoice summaries",
+    description: "Draft monthly billing reports",
+    date: null,
+    category: "personal",
+  },
+];
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
@@ -80,66 +141,7 @@ export default function CalendarPage() {
   const [activeDragTargetDate, setActiveDragTargetDate] = useState<string | null>(null);
 
   // Core Tasks state initialization
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "t1",
-      title: "Design review specs",
-      description: "Go over final layout drafts",
-      date: "2026-05-02",
-      time: "10:00 AM",
-      duration: 60,
-      category: "design",
-    },
-    {
-      id: "t2",
-      title: "Team Standup meeting",
-      description: "Daily status checks",
-      date: "2026-05-03",
-      time: "09:30 AM",
-      duration: 30,
-      category: "meeting",
-    },
-    {
-      id: "t3",
-      title: "Client discovery call",
-      description: "Kickoff call for design sprint",
-      date: "2026-05-03",
-      time: "02:00 PM",
-      duration: 45,
-      category: "client",
-    },
-    {
-      id: "t4",
-      title: "Sprint review session",
-      description: "Analyze timeline gaps",
-      date: "2026-05-05",
-      time: "11:00 AM",
-      duration: 90,
-      category: "planning",
-    },
-    {
-      id: "t5",
-      title: "Content shooting day",
-      description: "Shoot videos for marketing",
-      date: "2026-05-15",
-      time: "All Day",
-      category: "marketing",
-    },
-    {
-      id: "d1",
-      title: "Review analytics funnel",
-      description: "Unscheduled conversion check",
-      date: null,
-      category: "planning",
-    },
-    {
-      id: "d2",
-      title: "Prepare invoice summaries",
-      description: "Draft monthly billing reports",
-      date: null,
-      category: "personal",
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
 
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -181,7 +183,10 @@ export default function CalendarPage() {
     e.preventDefault();
     const id = e.dataTransfer.getData("text/plain") || draggedTaskId;
     
-    if (id) {
+    // Strict date format validation (YYYY-MM-DD)
+    const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(targetDateStr);
+    
+    if (id && isValidDate) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === id
